@@ -29,9 +29,10 @@ This repository contains a Python script designed to automate the installation o
 ## Installation
 1. Clone this repository:
    ```bash
+   curl -LO https://bit.ly/arch_btrfs_install
    git clone https://github.com/ArchLinux-Development/Arch_BTRFS_Install_Script.git
    ```
-2. Navigate to the cloned directory:
+2. Navigate to the cloned directory: If Cloned otherwise SKIP
    ```bash
    cd Arch_BTRFS_Install_Script
    ```
@@ -43,7 +44,7 @@ This repository contains a Python script designed to automate the installation o
    ```
 2. Run the script:
    ```bash
-   sudo ./arch_btrfs_install.py
+   python ./arch_btrfs_install.py
    ```
 
 ## Contributing
