@@ -1,72 +1,60 @@
-# Arch BTRFS Install Script
+Certainly! Here's a revamped `README.md` for the repository:
 
-## Introduction
+---
 
-The `arch_btrfs_install.py` script is a comprehensive tool designed to facilitate the installation of Arch Linux with a BTRFS filesystem. Created with user-friendliness in mind, this script automates various tasks, ensuring a smooth and efficient Arch Linux setup experience.
+# Arch Linux BTRFS Installation Script
 
-**Script By Eliminater74, 2023.**
+This repository contains a Python script designed to automate the installation of Arch Linux on a BTRFS filesystem.
 
-## 🌟 Features
+## Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [Disclaimer](#disclaimer)
+- [License](#license)
 
-- **BTRFS Filesystem**: 
-  - Utilizes the BTRFS filesystem, known for its advanced snapshot capabilities, data integrity, and scalability.
-  
-- **User-Friendly Interface**: 
-  - Interactive prompts guide the user through the installation process, minimizing the potential for errors.
-  
-- **Custom Partitioning**: 
-  - Offers flexibility in partitioning the disk, catering to both beginners and advanced users.
-  
-- **Network Configuration**: 
-  - Automated network setup, ensuring a seamless internet connection throughout the installation.
-  
-- **Package Installation**: 
-  - Streamlined process for installing essential packages, with options for customization.
-  
-- **Bootloader Setup**: 
-  - Automated configuration of the bootloader, ensuring a successful system boot post-installation.
+## Features
+- **Automated Installation**: Simplify the Arch Linux installation process with a single script.
+- **BTRFS Filesystem**: Specifically tailored for installations on a BTRFS filesystem.
+- **Partitioning**: Automated disk partitioning to ensure optimal setup.
+- **Base System Installation**: Installs the necessary base system for Arch Linux.
 
-## 🛠 Functions
+## Prerequisites
+- A system compatible with Arch Linux.
+- An active internet connection during installation.
+- A USB drive or CD with the Arch Linux ISO.
 
-- **`check_network()`**: 
-  - Validates the network connection.
-  
-- **`update_system()`**: 
-  - Updates the system packages.
-  
-- **`partition_disk()`**: 
-  - Handles disk partitioning.
-  
-- **`format_partitions()`**: 
-  - Formats the created partitions.
-  
-- **`mount_partitions()`**: 
-  - Mounts the partitions to appropriate directories.
-  
-- **`install_base_packages()`**: 
-  - Installs the base Arch Linux packages.
-  
-- **`configure_fstab()`**: 
-  - Configures the filesystem table.
-  
-- **`chroot_into_system()`**: 
-  - Enters the chroot environment for further configuration.
-  
-- **`configure_locale()`**: 
-  - Sets up the system locale.
-  
-- **`configure_hostname()`**: 
-  - Sets the system hostname.
-  
-- **`configure_time()`**: 
-  - Configures the system time and date.
-  
-- **`install_bootloader()`**: 
-  - Installs and configures the bootloader.
-  
-- **`finalize_installation()`**: 
-  - Final steps post-installation.
+## Installation
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/ArchLinux-Development/Arch_BTRFS_Install_Script.git
+   ```
+2. Navigate to the cloned directory:
+   ```bash
+   cd Arch_BTRFS_Install_Script
+   ```
 
-## 📜 Credits
+## Usage
+1. Make the script executable:
+   ```bash
+   chmod +x arch_btrfs_install.py
+   ```
+2. Run the script:
+   ```bash
+   sudo ./arch_btrfs_install.py
+   ```
 
-This script was meticulously crafted by **Eliminater74** in 2023. Special thanks to the Arch Linux community for their continuous support and contributions.
+## Contributing
+We welcome contributions! If you find a bug or have a feature request, please open an issue. If you'd like to contribute code, please fork the repository and submit a pull request.
+
+## Disclaimer
+This script is still in development and may contain bugs. Always backup your data before proceeding with the installation and use at your own risk.
+
+## License
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
+This is a basic structure for the README. You can further enhance it by adding screenshots, more detailed explanations, or any other information you deem necessary.
