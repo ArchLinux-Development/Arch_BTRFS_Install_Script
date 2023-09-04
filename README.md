@@ -1,7 +1,3 @@
-Certainly! Here's a revamped `README.md` for the repository:
-
----
-
 # Arch Linux BTRFS Installation Script
 
 This repository contains a Python script designed to automate the installation of Arch Linux on a BTRFS filesystem.
