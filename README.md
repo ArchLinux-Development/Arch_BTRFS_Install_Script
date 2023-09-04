@@ -51,7 +51,3 @@ This script is still in development and may contain bugs. Always backup your dat
 
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
-
----
-
-This is a basic structure for the README. You can further enhance it by adding screenshots, more detailed explanations, or any other information you deem necessary.
