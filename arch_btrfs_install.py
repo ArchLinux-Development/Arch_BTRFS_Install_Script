@@ -544,76 +544,70 @@ def main():
     while True:
         clear_screen()
         print("Arch Linux Installation Menu")
-        print("1) Choose drive")
-        print("2) Format partitions")
-        print("3) Create Btrfs subvolumes")
-        print("4) Mount file system")
-        print("5) Install essential packages")
-        print("6) Configure fstab")
-        print("7) Chroot into system")
-        print("8) Set time zone")
-        print("9) Localization")
-        print("10) Network configuration")
-        print("11) Set hostname")
-        print("12) Set root password")
-        print("13) Create a new user")
-        print("14) Kernel Selector")
-        print("15) Install additional packages")
-        print("16) Install custom packages")
-        print("17) Desktop Environment Installation")
-        print("18) Enable necessary services")
-        print("19) Setup zRAM")
-        print("20) Configure pacman repositories")
-        print("21) Setup Chaotic-AUR")
-        print("22) Setup CachyOS Repository")
-        print("23) Quit")
+        print("1) Install Filesystem")
+        print("2) Install essential packages")
+        print("3) Configure fstab")
+        print("4) Chroot into system")
+        print("5) Set time zone")
+        print("6) Localization")
+        print("7) Network configuration")
+        print("8) Set hostname")
+        print("9) Set root password")
+        print("10) Create a new user")
+        print("11) Kernel Selector")
+        print("12) Install additional packages")
+        print("13) Install custom packages")
+        print("14) Desktop Environment Installation")
+        print("15) Enable necessary services")
+        print("16) Setup zRAM")
+        print("17) Configure pacman repositories")
+        print("18) Setup Chaotic-AUR")
+        print("19) Setup CachyOS Repository")
+        print("20) Quit")
         choice = input("Enter your choice: ")
 
         if choice == "1":
             drive = choose_drive()
-        elif choice == "2":
             format_partitions(drive)
-        elif choice == "3":
             create_subvolumes(drive)
-        elif choice == "4":
             mount_file_system(drive)
-        elif choice == "5":
+        elif choice == "2":
             install_essential_packages()
-        elif choice == "6":
+        elif choice == "3":
             configure_fstab()
-        elif choice == "7":
+        elif choice == "4":
             chroot_into_system()
-        elif choice == "8":
+        elif choice == "5":
             set_time_zone()
-        elif choice == "9":
+        elif choice == "6":
             localization()
-        elif choice == "10":
+        elif choice == "7":
             network_configuration()
-        elif choice == "11":
+        elif choice == "8":
             set_hostname()
-        elif choice == "12":
+        elif choice == "9":
             set_root_password()
-        elif choice == "13":
+        elif choice == "10":
             create_user()
-        elif choice == "14":
+        elif choice == "11":
             kernel_selector()
-        elif choice == "15":
+        elif choice == "12":
             install_additional_packages()
-        elif choice == "16":
+        elif choice == "13":
             install_custom_packages()
-        elif choice == "17":
+        elif choice == "14":
             install_desktop_environment()
-        elif choice == "18":
+        elif choice == "15":
             enable_services()
-        elif choice == "19":
+        elif choice == "16":
             setup_zram()
-        elif choice == "20":
+        elif choice == "17":
             configure_pacman_repos()
-        elif choice == "21":
+        elif choice == "18":
             setup_chaotic_aur()
-        elif choice == "22":
+        elif choice == "19":
             setup_cachyos_repo()
-        elif choice == "23":
+        elif choice == "20":
             print("Exiting...")
             break
         else:
