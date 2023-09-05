@@ -51,7 +51,9 @@ def display_intro():
 
 
 def run_command(cmd):
-    return subprocess.run(cmd, shell=True, text=True, capture_output=True)
+    result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+    print(result.stdout)
+    return result
 
 
 def clear_screen():
