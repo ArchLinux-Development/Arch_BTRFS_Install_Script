@@ -657,9 +657,7 @@ def main():
             break
         else:
             print("Invalid choice!")
-        input("Press any key to return to the main menu...")
-
-
+        input("Press any key to continue...")
 
 if __name__ == "__main__":
     display_intro()
