@@ -1,7 +1,7 @@
 import os
 import subprocess
 import re
-
+from pathlib import Path
 
 def display_intro():
     os.system('clear')
@@ -58,6 +58,13 @@ def run_command(cmd):
 
 def clear_screen():
     os.system('clear')
+
+
+# Define the SubvolumeModification class outside of the function for clarity
+class SubvolumeModification:
+    def __init__(self, name, mount_point):
+        self.name = name
+        self.mount_point = mount_point
 
 
 def install_filesystem():
@@ -145,20 +152,27 @@ def install_filesystem():
         else:
             run_command(f"mkfs.btrfs -f {drive}2")
 
-    def mount_file_system(drive):
-        run_command(f"mount -o compress=zstd,subvol=@ {drive}2 /mnt")
-        run_command("mkdir /mnt/home")
-        run_command(f"mount -o compress=zstd,subvol=@home {drive}2 /mnt/home")
-        
-        # Mount EFI partition if it exists
-        if os.path.exists(f"{drive}1"):
-            run_command("mkdir -p /mnt/boot")
-            run_command(f"mount {drive}1 /mnt/boot")
-
     def create_subvolumes(drive):
+        # Unmount /mnt before creating subvolumes
+        run_command("umount /mnt")
+        
+        # Mount the drive to /mnt
         run_command(f"mount {drive} /mnt")
-        run_command("btrfs subvolume create /mnt/@")
-        run_command("btrfs subvolume create /mnt/@home")
+        
+        # Define the subvolumes
+        subvolumes = [
+            SubvolumeModification(Path('@'), Path('/')),
+            SubvolumeModification(Path('@home'), Path('/home')),
+            SubvolumeModification(Path('@log'), Path('/var/log')),
+            SubvolumeModification(Path('@pkg'), Path('/var/cache/pacman/pkg')),
+            SubvolumeModification(Path('@.snapshots'), Path('/.snapshots'))
+        ]
+        
+        # Create the specified subvolumes
+        for subvol in subvolumes:
+            run_command(f"btrfs subvolume create /mnt{subvol.name}")
+
+        # Unmount after creating subvolumes
         run_command("umount /mnt")
 
     def mount_file_system(drive):
@@ -168,11 +182,12 @@ def install_filesystem():
         run_command(f"mount -o compress=zstd,subvol=@ {drive} /mnt")
         run_command("mkdir /mnt/home")
         run_command(f"mount -o compress=zstd,subvol=@home {drive} /mnt/home")
-
-        # Mount EFI partition if it exists
-        if os.path.exists(f"{drive}1"):
-            run_command("mkdir -p /mnt/boot")
-            run_command(f"mount {drive}1 /mnt/boot")
+        run_command("mkdir /mnt/var/log")
+        run_command(f"mount -o compress=zstd,subvol=@log {drive} /mnt/var/log")
+        run_command("mkdir /mnt/var/cache/pacman/pkg")
+        run_command(f"mount -o compress=zstd,subvol=@pkg {drive} /mnt/var/cache/pacman/pkg")
+        run_command("mkdir /mnt/.snapshots")
+        run_command(f"mount -o compress=zstd,subvol=@.snapshots {drive} /mnt/.snapshots")
 
     # Main sequence of the install_filesystem function
     drive = choose_drive()
@@ -183,8 +198,6 @@ def install_filesystem():
     format_partitions(drive)
     create_subvolumes(drive)
     mount_file_system(drive)
-
-
 
 
 def is_inside_chroot():
