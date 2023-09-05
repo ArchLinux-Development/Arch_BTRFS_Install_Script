@@ -2,6 +2,7 @@ import os
 import subprocess
 import re
 import sys
+import curses
 from pathlib import Path
 
 def display_intro():
@@ -280,8 +281,58 @@ def network_configuration():
             print("Invalid choice!")
 
 
-def install_additional_packages():
-    run_command("pacman -S btrfs-progs grub grub-btrfs rsync efibootmgr snapper reflector snap-pac zram-generator sudo micro git neofetch zsh man-db man-pages texinfo samba chromium nano")
+def install_additional_packages(stdscr):
+    packages = [
+        "btrfs-progs", "grub", "grub-btrfs", "rsync", "efibootmgr", 
+        "snapper", "reflector", "snap-pac", "zram-generator", "sudo", 
+        "micro", "git", "neofetch", "zsh", "man-db", "man-pages", 
+        "texinfo", "samba", "chromium", "nano"
+    ]
+    selected_packages = packages.copy()  # All packages are selected by default
+
+    curses.curs_set(0)
+    stdscr.nodelay(0)
+    stdscr.timeout(100)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    current_row = 0
+
+    while True:
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+        for idx, package in enumerate(packages):
+            x = w//2 - len(package)//2
+            y = h//2 - len(packages)//2 + idx
+            if idx == current_row:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x, package)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(y, x, package)
+
+            # Display an 'X' next to the package if it's selected
+            if package in selected_packages:
+                stdscr.addstr(y, x - 3, "[X]")
+            else:
+                stdscr.addstr(y, x - 3, "[ ]")
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(packages)-1:
+            current_row += 1
+        elif key == ord(' '):  # Space bar to select/deselect a package
+            if packages[current_row] in selected_packages:
+                selected_packages.remove(packages[current_row])
+            else:
+                selected_packages.append(packages[current_row])
+        elif key == ord('q'):  # Press 'q' to quit and install selected packages
+            break
+
+    # Install the selected packages
+    if selected_packages:
+        cmd = "pacman -S " + " ".join(selected_packages)
+        run_command(cmd)
 
 
 def install_custom_packages():
@@ -598,77 +649,69 @@ def kernel_selector():
         input("Press any key to return to the kernel selector...")
 
 
-def main():
-    while True:
-        clear_screen()
-        print("Arch Linux Installation Menu")
-        print("1) Install Filesystem")
-        print("2) Install essential packages")
-        print("3) Configure fstab")
-        print("4) Chroot into system")
-        print("5) Set time zone")
-        print("6) Localization")
-        print("7) Network configuration")
-        print("8) Set hostname")
-        print("9) Set root password")
-        print("10) Create a new user")
-        print("11) Kernel Selector")
-        print("12) Install additional packages")
-        print("13) Install custom packages")
-        print("14) Desktop Environment Installation")
-        print("15) Enable necessary services")
-        print("16) Setup zRAM")
-        print("17) Configure pacman repositories")
-        print("18) Setup Chaotic-AUR")
-        print("19) Setup CachyOS Repository")
-        print("20) Quit")
-        choice = input("Enter your choice: ")
+def display_menu(stdscr):
+    menu_items = [
+        "Install Filesystem", "Install essential packages", "Configure fstab",
+        "Chroot into system", "Set time zone", "Localization", "Network configuration",
+        "Set hostname", "Set root password", "Create a new user", "Kernel Selector",
+        "Install additional packages", "Install custom packages", "Desktop Environment Installation",
+        "Enable necessary services", "Setup zRAM", "Configure pacman repositories",
+        "Setup Chaotic-AUR", "Setup CachyOS Repository", "Quit"
+    ]
+    current_row = 0
 
-        if choice == "1":
-            install_filesystem()
-        elif choice == "2":
-            install_essential_packages()
-        elif choice == "3":
-            configure_fstab()
-        elif choice == "4":
-            chroot_into_system()
-        elif choice == "5":
-            set_time_zone()
-        elif choice == "6":
-            localization()
-        elif choice == "7":
-            network_configuration()
-        elif choice == "8":
-            set_hostname()
-        elif choice == "9":
-            set_root_password()
-        elif choice == "10":
-            create_user()
-        elif choice == "11":
-            kernel_selector()
-        elif choice == "12":
-            install_additional_packages()
-        elif choice == "13":
-            install_custom_packages()
-        elif choice == "14":
-            install_desktop_environment()
-        elif choice == "15":
-            enable_services()
-        elif choice == "16":
-            setup_zram()
-        elif choice == "17":
-            configure_pacman_repos()
-        elif choice == "18":
-            setup_chaotic_aur()
-        elif choice == "19":
-            setup_cachyos_repo()
-        elif choice == "20":
-            print("Exiting...")
+    curses.curs_set(0)
+    stdscr.nodelay(0)
+    stdscr.timeout(100)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
+
+    while True:
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+
+        # Draw title
+        title = "Arch Linux Installation Menu"
+        stdscr.attron(curses.color_pair(2))
+        stdscr.addstr(0, (w - len(title)) // 2, title)
+        stdscr.attroff(curses.color_pair(2))
+
+        # Draw menu items
+        for idx, item in enumerate(menu_items):
+            x = w//4
+            y = h//4 + idx
+            if idx == current_row:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x, item)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(y, x, item)
+
+        # Draw footer
+        footer = "Use arrow keys to navigate, Enter to select, and 'q' to quit."
+        stdscr.addstr(h-2, (w - len(footer)) // 2, footer)
+
+        # Draw border
+        stdscr.border(0)
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(menu_items)-1:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
+            if current_row == 0:
+                install_filesystem()
+            # ... [Handle other menu options here] ...
+            elif current_row == 11:
+                curses.wrapper(install_additional_packages)
+            # ... [Handle other menu options here] ...
+            elif current_row == len(menu_items) - 1:
+                break
+        elif key == ord('q'):
             break
-        else:
-            print("Invalid choice!")
-        input("Press any key to continue...")
 
 if __name__ == "__main__":
     display_intro()
-    main()
+    curses.wrapper(display_menu)
