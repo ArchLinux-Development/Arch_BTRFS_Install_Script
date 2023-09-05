@@ -553,14 +553,14 @@ def main():
         print("7) Chroot into system")
         print("8) Set time zone")
         print("9) Localization")
-        print("10) Set hostname")
-        print("11) Network configuration")
-        print("12) Kernel Selector")
-        print("13) Set root password")
-        print("14) Create a new user")
-        print("15) Desktop Environment Installation")
-        print("16) Install additional packages")
-        print("17) Install custom packages")
+        print("10) Network configuration")
+        print("11) Set hostname")
+        print("12) Set root password")
+        print("13) Create a new user")
+        print("14) Kernel Selector")
+        print("15) Install additional packages")
+        print("16) Install custom packages")
+        print("17) Desktop Environment Installation")
         print("18) Enable necessary services")
         print("19) Setup zRAM")
         print("20) Configure pacman repositories")
@@ -588,21 +588,21 @@ def main():
         elif choice == "9":
             localization()
         elif choice == "10":
-            set_hostname()
-        elif choice == "11":
             network_configuration()
+        elif choice == "11":
+            set_hostname()
         elif choice == "12":
-            kernel_selector()
-        elif choice == "13":
             set_root_password()
-        elif choice == "14":
+        elif choice == "13":
             create_user()
+        elif choice == "14":
+            kernel_selector()
         elif choice == "15":
-            install_desktop_environment()
-        elif choice == "16":
             install_additional_packages()
-        elif choice == "17":
+        elif choice == "16":
             install_custom_packages()
+        elif choice == "17":
+            install_desktop_environment()
         elif choice == "18":
             enable_services()
         elif choice == "19":
