@@ -1,6 +1,7 @@
 import os
 import subprocess
 import re
+import sys
 from pathlib import Path
 
 def display_intro():
@@ -51,8 +52,13 @@ def display_intro():
 
 
 def run_command(cmd):
-    result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-    print(result.stdout)
+    if isinstance(cmd, str):
+        cmd = cmd.split()
+    result = subprocess.run(cmd, text=True, capture_output=True)
+    if result.stdout:
+        print(result.stdout)
+    if result.stderr:
+        print(f"Error: {result.stderr}", file=sys.stderr)
     return result
 
 
