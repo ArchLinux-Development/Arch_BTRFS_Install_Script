@@ -60,100 +60,127 @@ def clear_screen():
     os.system('clear')
 
 
+def install_filesystem():
+    def choose_drive():
+        while True:
+            clear_screen()  # Clear the screen before displaying the menu
+            drives = get_connected_drives()
+            if not drives:
+                print("No drives detected!")
+                return None
+
+            print("Available drives:")
+            for idx, drive in enumerate(drives, 1):
+                print(f"{idx}. {drive}")
+
+            print(f"{len(drives) + 1}. Return to main menu")
+
+            choice = input("Enter the number of the drive you want to install to or return to the main menu: ")
+            if choice.isdigit() and 1 <= int(choice) <= len(drives):
+                return drives[int(choice) - 1]
+            elif choice == str(len(drives) + 1):
+                return None
+            else:
+                print("Invalid choice. Please select a valid drive number or return to the main menu.")
+                input("Press any key to continue...")
+
+    def get_connected_drives():
+        result = run_command("lsblk -dpno NAME,SIZE,MODEL")
+        lines = result.stdout.split("\n")
+        drives = []
+        for line in lines:
+            if line:
+                drives.append(line.strip())
+        return drives
+
+    def setup_luks_encryption(drive):
+        while True:
+            passphrase = input("Enter a passphrase for LUKS encryption: ")
+            if not is_strong_password(passphrase):
+                print("Weak passphrase! Ensure it's at least 8 characters long, contains lowercase, uppercase, numbers, and special characters.")
+                continue
+            confirm_passphrase = input("Confirm passphrase: ")
+
+            if passphrase != confirm_passphrase:
+                print("Passphrases do not match!")
+                continue
+            break
+
+        # Encrypt the partition
+        run_command(f"echo -n {passphrase} | cryptsetup luksFormat {drive} -")
+
+        # Open the encrypted partition
+        run_command(f"echo -n {passphrase} | cryptsetup open {drive} cryptroot -")
+
+        return "/dev/mapper/cryptroot"  # Return the path to the opened encrypted partition
+
+    def format_partitions(drive):
+        if not drive:
+            print("No drive selected!")
+            return
+
+        print(f"\nWARNING: You are about to format the drive {drive}.")
+        print("All data on this drive will be permanently lost!")
+        confirmation = input("Are you sure you want to proceed? (y/n): ")
+
+        if confirmation.lower() != 'y':
+            print("Operation cancelled.")
+            return
+
+        # Ask user if they want to create an EFI partition
+        efi_choice = input("Do you want to create an EFI partition for boot? (y/n): ")
+        if efi_choice.lower() == "y":
+            run_command(f"parted {drive} mklabel gpt")
+            run_command(f"parted {drive} mkpart ESP fat32 1MiB 551MiB")
+            run_command(f"parted {drive} set 1 boot on")
+            run_command(f"mkfs.fat -F32 {drive}1")
+
+        encrypt_choice = input("Do you want to enable LUKS encryption? (y/n): ")
+        if encrypt_choice.lower() == "y":
+            drive = setup_luks_encryption(drive)
+
+        choice = input("Do you want to enable Btrfs compression? (y/n): ")
+        if choice.lower() == "y":
+            run_command(f"mkfs.btrfs -f --compress=zstd {drive}2")
+        else:
+            run_command(f"mkfs.btrfs -f {drive}2")
+
+    def mount_file_system(drive):
+        run_command(f"mount -o compress=zstd,subvol=@ {drive}2 /mnt")
+        run_command("mkdir /mnt/home")
+        run_command(f"mount -o compress=zstd,subvol=@home {drive}2 /mnt/home")
+        
+        # Mount EFI partition if it exists
+        if os.path.exists(f"{drive}1"):
+            run_command("mkdir -p /mnt/boot")
+            run_command(f"mount {drive}1 /mnt/boot")
+
+    def create_subvolumes(drive):
+        run_command(f"mount {drive} /mnt")
+        run_command("btrfs subvolume create /mnt/@")
+        run_command("btrfs subvolume create /mnt/@home")
+        run_command("umount /mnt")
+
+    def mount_file_system(drive):
+        run_command(f"mount -o compress=zstd,subvol=@ {drive} /mnt")
+        run_command("mkdir /mnt/home")
+        run_command(f"mount -o compress=zstd,subvol=@home {drive} /mnt/home")
+
+   # Main sequence of the install_filesystem function
+    drive = choose_drive()
+    
+    # Check if the drive is None (i.e., user chose to return to the main menu)
+    if not drive:
+        return
+    format_partitions(drive)
+    create_subvolumes(drive)
+    mount_file_system(drive)
+
+
+
+
 def is_inside_chroot():
     return os.stat("/") != os.stat("/proc/1/root/.")
-
-
-def choose_drive():
-    while True:
-        clear_screen()  # Clear the screen before displaying the menu
-        drives = get_connected_drives()
-        if not drives:
-            print("No drives detected!")
-            return None
-
-        print("Available drives:")
-        for idx, drive in enumerate(drives, 1):
-            print(f"{idx}. {drive}")
-
-        print(f"{len(drives) + 1}. Return to main menu")
-
-        choice = input("Enter the number of the drive you want to install to or return to the main menu: ")
-        if choice.isdigit() and 1 <= int(choice) <= len(drives):
-            return drives[int(choice) - 1]
-        elif choice == str(len(drives) + 1):
-            return None
-        else:
-            print("Invalid choice. Please select a valid drive number or return to the main menu.")
-            input("Press any key to continue...")
-
-
-def get_connected_drives():
-    result = run_command("lsblk -dpno NAME,SIZE,MODEL")
-    lines = result.stdout.split("\n")
-    drives = []
-    for line in lines:
-        if line:
-            drives.append(line.strip())
-    return drives
-
-
-def setup_luks_encryption(drive):
-    while True:
-        passphrase = input("Enter a passphrase for LUKS encryption: ")
-        if not is_strong_password(passphrase):
-            print("Weak passphrase! Ensure it's at least 8 characters long, contains lowercase, uppercase, numbers, and special characters.")
-            continue
-        confirm_passphrase = input("Confirm passphrase: ")
-
-        if passphrase != confirm_passphrase:
-            print("Passphrases do not match!")
-            continue
-        break
-
-    # Encrypt the partition
-    run_command(f"echo -n {passphrase} | cryptsetup luksFormat {drive} -")
-
-    # Open the encrypted partition
-    run_command(f"echo -n {passphrase} | cryptsetup open {drive} cryptroot -")
-
-    return "/dev/mapper/cryptroot"  # Return the path to the opened encrypted partition
-
-def format_partitions(drive):
-    if not drive:
-        print("No drive selected!")
-        return
-
-    print(f"\nWARNING: You are about to format the drive {drive}.")
-    print("All data on this drive will be permanently lost!")
-    confirmation = input("Are you sure you want to proceed? (y/n): ")
-
-    if confirmation.lower() != 'y':
-        print("Operation cancelled.")
-        return
-
-    encrypt_choice = input("Do you want to enable LUKS encryption? (y/n): ")
-    if encrypt_choice.lower() == "y":
-        drive = setup_luks_encryption(drive)
-
-    choice = input("Do you want to enable Btrfs compression? (y/n): ")
-    if choice.lower() == "y":
-        run_command(f"mkfs.btrfs -f --compress=zstd {drive}")
-    else:
-        run_command(f"mkfs.btrfs -f {drive}")
-
-
-def create_subvolumes(drive):
-    run_command(f"mount {drive} /mnt")
-    run_command("btrfs subvolume create /mnt/@")
-    run_command("btrfs subvolume create /mnt/@home")
-    run_command("umount /mnt")
-
-
-def mount_file_system(drive):
-    run_command(f"mount -o compress=zstd,subvol=@ {drive} /mnt")
-    run_command("mkdir /mnt/home")
-    run_command(f"mount -o compress=zstd,subvol=@home {drive} /mnt/home")
 
 
 def install_essential_packages():
@@ -567,10 +594,7 @@ def main():
         choice = input("Enter your choice: ")
 
         if choice == "1":
-            drive = choose_drive()
-            format_partitions(drive)
-            create_subvolumes(drive)
-            mount_file_system(drive)
+            install_filesystem()
         elif choice == "2":
             install_essential_packages()
         elif choice == "3":
