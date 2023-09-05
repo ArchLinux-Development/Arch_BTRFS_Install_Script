@@ -162,11 +162,19 @@ def install_filesystem():
         run_command("umount /mnt")
 
     def mount_file_system(drive):
+        # Unmount /mnt before mounting the new system
+        run_command("umount /mnt")
+        
         run_command(f"mount -o compress=zstd,subvol=@ {drive} /mnt")
         run_command("mkdir /mnt/home")
         run_command(f"mount -o compress=zstd,subvol=@home {drive} /mnt/home")
 
-   # Main sequence of the install_filesystem function
+        # Mount EFI partition if it exists
+        if os.path.exists(f"{drive}1"):
+            run_command("mkdir -p /mnt/boot")
+            run_command(f"mount {drive}1 /mnt/boot")
+
+    # Main sequence of the install_filesystem function
     drive = choose_drive()
     
     # Check if the drive is None (i.e., user chose to return to the main menu)
