@@ -63,7 +63,11 @@ def run_command(cmd):
 
 
 def clear_screen():
-    os.system('clear')
+    if os.name == 'posix':
+        os.system('clear')
+    else:
+        os.system('cls')
+
 
 
 # Define the SubvolumeModification class outside of the function for clarity
