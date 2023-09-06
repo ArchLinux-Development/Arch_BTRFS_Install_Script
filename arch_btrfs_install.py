@@ -741,8 +741,7 @@ def display_menu(stdscr):
     current_row = 0
 
     curses.curs_set(0)
-    stdscr.nodelay(0)
-    stdscr.timeout(100)
+    stdscr.keypad(1)  # Enable special keys
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
@@ -753,13 +752,13 @@ def display_menu(stdscr):
         # Draw title
         title = "Arch Linux Installation Menu"
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(0, (w - len(title)) // 2, title)
+        stdscr.addstr(1, (w - len(title)) // 2, title)
         stdscr.attroff(curses.color_pair(2))
 
         # Draw menu items
         for idx, item in enumerate(menu_items):
-            x = w//4
-            y = h//4 + idx
+            x = w // 4
+            y = h // 4 + idx
             if idx == current_row:
                 stdscr.attron(curses.color_pair(1))
                 stdscr.addstr(y, x, item)
@@ -769,29 +768,35 @@ def display_menu(stdscr):
 
         # Draw footer
         footer = "Use arrow keys to navigate, Enter to select, and 'q' to quit."
-        stdscr.addstr(h-2, (w - len(footer)) // 2, footer)
+        stdscr.addstr(h - 2, (w - len(footer)) // 2, footer)
 
         # Draw border
         stdscr.border(0)
+
+        stdscr.refresh()  # Refresh the screen
 
         key = stdscr.getch()
 
         if key == curses.KEY_UP and current_row > 0:
             current_row -= 1
-        elif key == curses.KEY_DOWN and current_row < len(menu_items)-1:
+        elif key == curses.KEY_DOWN and current_row < len(menu_items) - 1:
             current_row += 1
         elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
             if current_row == 0:
-                curses.wrapper(install_filesystem_menu)
-            # ... [Handle other menu options here] ...
+                install_filesystem_menu(stdscr)
             elif current_row == 11:
-                curses.wrapper(install_additional_packages)
+                install_additional_packages(stdscr)
             # ... [Handle other menu options here] ...
             elif current_row == len(menu_items) - 1:
                 break
         elif key == ord('q'):
             break
 
+    stdscr.keypad(0)  # Disable special keys
+    curses.endwin()
+
+# To start the menu
 if __name__ == "__main__":
     display_intro()
     curses.wrapper(display_menu)
+
