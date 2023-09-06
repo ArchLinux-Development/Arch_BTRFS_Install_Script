@@ -52,15 +52,15 @@ def display_intro():
     input("\nPress Enter to proceed to the main menu...")
 
 
-def run_command(cmd):
-    if isinstance(cmd, str):
-        cmd = cmd.split()
-    result = subprocess.run(cmd, text=True, capture_output=True)
-    if result.stdout:
-        print(result.stdout)
-    if result.stderr:
-        print(f"Error: {result.stderr}", file=sys.stderr)
-    return result
+def run_command(command, log_file="install_log.txt"):
+    result = subprocess.run(command, text=True, capture_output=True, shell=True)
+    with open(log_file, "a") as f:
+        f.write(result.stdout)
+        f.write(result.stderr)
+    if result.returncode != 0:
+        print(f"Error executing: {command}")
+        print(result.stderr)
+        exit(1)
 
 
 def clear_screen():
