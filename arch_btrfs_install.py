@@ -503,27 +503,50 @@ def setup_cachyos_repo():
         'echo -e "\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist" >> /etc/pacman.conf')
     print("CachyOS repository setup complete!")
 
-def install_desktop_environment():
+def install_desktop_environment(stdscr):
+    environments = [
+        "Install KDE Plasma",
+        "Install GNOME",
+        "Return to main menu"
+    ]
+    current_row = 0
+
     while True:
-        clear_screen()
-        print("Desktop Environment Installation Menu")
-        print("1) Install KDE Plasma")
-        print("2) Install GNOME")
-        print("3) Return to main menu")
-        
-        choice = input("Enter your choice: ")
-        
-        if choice == "1":
-            install_kde_plasma()
-            install_xorg_option()
-        elif choice == "2":
-            install_gnome()
-            install_xorg_option()
-        elif choice == "3":
-            return
-        else:
-            print("Invalid choice!")
-        input("Press any key to return to the Desktop Environment Installation Menu...")
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+
+        # Draw title
+        title = "Desktop Environment Installation Menu"
+        stdscr.addstr(1, (w - len(title)) // 2, title)
+
+        # Draw menu items
+        for idx, item in enumerate(environments):
+            x = w // 4
+            y = h // 4 + idx
+            if idx == current_row:
+                stdscr.attron(curses.A_REVERSE)
+                stdscr.addstr(y, x, item)
+                stdscr.attroff(curses.A_REVERSE)
+            else:
+                stdscr.addstr(y, x, item)
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(environments) - 1:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
+            if current_row == 0:
+                install_kde_plasma()
+                install_xorg_option(stdscr)
+            elif current_row == 1:
+                install_gnome()
+                install_xorg_option(stdscr)
+            elif current_row == 2:
+                return
+
+        stdscr.refresh()
 
 def install_kde_plasma():
     run_command("pacman -S plasma-meta plasma-wayland-session kde-utilities kde-system dolphin-plugins sddm sddm-kcm kde-graphics ksysguard")
@@ -531,9 +554,14 @@ def install_kde_plasma():
 def install_gnome():
     run_command("pacman -S gnome gnome-extra gdm")
 
-def install_xorg_option():
-    choice = input("Do you want to install Xorg-related packages? (y/n): ")
-    if choice.lower() == "y":
+def install_xorg_option(stdscr):
+    h, w = stdscr.getmaxyx()
+    stdscr.clear()
+    msg = "Do you want to install Xorg-related packages? (y/n): "
+    stdscr.addstr(h // 2, (w - len(msg)) // 2, msg)
+    stdscr.refresh()
+    choice = stdscr.getch()
+    if choice == ord('y'):
         run_command("pacman -S xorg-server xorg-apps")
 
 
@@ -824,7 +852,7 @@ def display_menu(stdscr):
             elif current_row == 12:
                 install_custom_packages()
             elif current_row == 13:
-                install_desktop_environment()
+                install_desktop_environment(stdscr)
             elif current_row == 14:
                 enable_necessary_services()
             elif current_row == 15:
