@@ -3,6 +3,7 @@ import subprocess
 import re
 import sys
 import curses
+import logging
 from pathlib import Path
 
 def display_intro():
@@ -52,6 +53,9 @@ def display_intro():
     input("\nPress Enter to proceed to the main menu...")
 
 
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+
 def run_command(command, log_file="install_log.txt"):
     result = subprocess.run(command, text=True, capture_output=True, shell=True)
     with open(log_file, "a") as f:
@@ -63,11 +67,9 @@ def run_command(command, log_file="install_log.txt"):
         exit(1)
 
 
-def clear_screen():
-    if os.name == 'posix':
-        os.system('clear')
-    else:
-        os.system('cls')
+def clear():
+    """Clear the terminal screen using subprocess."""
+    subprocess.run(['clear'])
 
 
 def install_filesystem_menu(stdscr):
