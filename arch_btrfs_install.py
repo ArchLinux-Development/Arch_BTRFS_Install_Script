@@ -692,41 +692,61 @@ def is_valid_hostname(hostname):
     return all(allowed.match(x) for x in hostname.split("."))
 
 
-def kernel_selector():
+def kernel_selector(stdscr):
+    kernels = [
+        "linux (Standard Arch Kernel)",
+        "linux-lts (Long Term Support Kernel)",
+        "linux-zen (Tuned for desktop performance)",
+        "linux-hardened (Security-focused kernel)",
+        "Return to main menu"
+    ]
+    current_row = 0
+
     while True:
-        clear_screen()
-        print("Kernel Selector")
-        print("-" * 25)
-        print("Choose a kernel:")
-        print("1) linux (Standard Arch Kernel)")
-        print("2) linux-lts (Long Term Support Kernel)")
-        print("3) linux-zen (Tuned for desktop performance)")
-        print("4) linux-hardened (Security-focused kernel)")
-        print("5) Return to main menu")
-        
-        choice = input("Enter your choice: ")
-        
-        if choice == "1":
-            run_command("pacman -S linux linux-headers")
-            print("Standard Arch Kernel installed.")
-            
-        elif choice == "2":
-            run_command("pacman -S linux-lts linux-lts-headers")
-            print("Long Term Support Kernel installed.")
-            
-        elif choice == "3":
-            run_command("pacman -S linux-zen linux-zen-headers")
-            print("Zen Kernel installed.")
-            
-        elif choice == "4":
-            run_command("pacman -S linux-hardened linux-hardened-headers")
-            print("Hardened Kernel installed.")
-            
-        elif choice == "5":
-            return
-        else:
-            print("Invalid choice!")
-        input("Press any key to return to the kernel selector...")
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+
+        # Draw title
+        title = "Kernel Selector"
+        stdscr.addstr(1, (w - len(title)) // 2, title)
+        stdscr.addstr(2, (w - 25) // 2, "-" * 25)
+
+        # Draw menu items
+        for idx, item in enumerate(kernels):
+            x = w // 4
+            y = h // 4 + idx
+            if idx == current_row:
+                stdscr.attron(curses.A_REVERSE)
+                stdscr.addstr(y, x, item)
+                stdscr.attroff(curses.A_REVERSE)
+            else:
+                stdscr.addstr(y, x, item)
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(kernels) - 1:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
+            if current_row == 0:
+                run_command("pacman -S linux linux-headers")
+                stdscr.addstr(h - 2, (w - len("Standard Arch Kernel installed.")) // 2, "Standard Arch Kernel installed.")
+            elif current_row == 1:
+                run_command("pacman -S linux-lts linux-lts-headers")
+                stdscr.addstr(h - 2, (w - len("Long Term Support Kernel installed.")) // 2, "Long Term Support Kernel installed.")
+            elif current_row == 2:
+                run_command("pacman -S linux-zen linux-zen-headers")
+                stdscr.addstr(h - 2, (w - len("Zen Kernel installed.")) // 2, "Zen Kernel installed.")
+            elif current_row == 3:
+                run_command("pacman -S linux-hardened linux-hardened-headers")
+                stdscr.addstr(h - 2, (w - len("Hardened Kernel installed.")) // 2, "Hardened Kernel installed.")
+            elif current_row == 4:
+                return
+            stdscr.refresh()
+            stdscr.getch()  # Wait for user input before returning to the menu
+
+        stdscr.refresh()
 
 
 def display_menu(stdscr):
@@ -770,11 +790,6 @@ def display_menu(stdscr):
         footer = "Use arrow keys to navigate, Enter to select, and 'q' to quit."
         stdscr.addstr(h - 2, (w - len(footer)) // 2, footer)
 
-        # Draw border
-        stdscr.border(0)
-
-        stdscr.refresh()  # Refresh the screen
-
         key = stdscr.getch()
 
         if key == curses.KEY_UP and current_row > 0:
@@ -784,19 +799,53 @@ def display_menu(stdscr):
         elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
             if current_row == 0:
                 install_filesystem_menu(stdscr)
+            elif current_row == 1:
+                install_essential_packages()
+            elif current_row == 2:
+                configure_fstab()
+            elif current_row == 3:
+                chroot_into_system()
+            elif current_row == 4:
+                set_time_zone()
+            elif current_row == 5:
+                localization()
+            elif current_row == 6:
+                network_configuration()
+            elif current_row == 7:
+                set_hostname()
+            elif current_row == 8:
+                set_root_password()
+            elif current_row == 9:
+                create_user()
+            elif current_row == 10:
+                kernel_selector(stdscr)
             elif current_row == 11:
                 install_additional_packages(stdscr)
-            # ... [Handle other menu options here] ...
+            elif current_row == 12:
+                install_custom_packages()
+            elif current_row == 13:
+                install_desktop_environment()
+            elif current_row == 14:
+                enable_necessary_services()
+            elif current_row == 15:
+                setup_zram()
+            elif current_row == 16:
+                configure_pacman_repositories()
+            elif current_row == 17:
+                setup_chaotic_aur()
+            elif current_row == 18:
+                setup_cachyos_repo()
             elif current_row == len(menu_items) - 1:
                 break
         elif key == ord('q'):
             break
+
+        stdscr.refresh()  # Refresh the screen
 
     stdscr.keypad(0)  # Disable special keys
     curses.endwin()
 
 # To start the menu
 if __name__ == "__main__":
-    display_intro()
+    display_intro()  # Uncomment this if you have a display_intro function
     curses.wrapper(display_menu)
-
