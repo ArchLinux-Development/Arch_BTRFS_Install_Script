@@ -1,3 +1,4 @@
+# Standard library imports
 import os
 import subprocess
 import re
@@ -5,6 +6,12 @@ import sys
 import curses
 import logging
 from pathlib import Path
+
+# Local application/library-specific imports
+from libs import bootloader
+from libs import disk_operations
+from libs import system_config
+from libs import utils
 
 def display_intro():
     os.system('clear')
