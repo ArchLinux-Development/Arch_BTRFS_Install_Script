@@ -269,7 +269,6 @@ def mount_file_system_curses(stdscr, drive):
     run_command(f"mount -o compress=zstd,subvol=@ {drive} /mnt")
     stdscr.addstr(0, 0, "Mounted root filesystem.")
 
-    # ... (rest of the logic similar to the original function but using curses for display and input)
 
     stdscr.addstr(6, 0, "Filesystem mounted successfully!")
     stdscr.getch()
@@ -324,41 +323,123 @@ def localization():
     run_command('echo "LANG=en_US.UTF-8" > /etc/locale.conf')
 
 
-def network_configuration():
+# Used for network configuration
+def run_command(command):
+    return subprocess.run(command, shell=True, capture_output=True, text=True)
+
+
+def scan_wifi():
+    try:
+        result = subprocess.check_output(['iwlist', 'wlan0', 'scan'])
+        result = result.decode('utf-8')
+        ssids = [line.split(':')[1].strip() for line in result.split('\n') if "ESSID" in line]
+        return ssids
+    except:
+        return []
+
+def wifi_menu(stdscr):
+    ssids = scan_wifi()
+    if not ssids:
+        stdscr.addstr(0, 0, "No Wi-Fi networks found or error in scanning.")
+        stdscr.getch()
+        return
+
+    current_row = 0
+
+    curses.curs_set(0)
+    stdscr.keypad(1)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
+
     while True:
-        clear_screen()  # Clear the screen before displaying the menu
-        print("Network Configuration")
-        print("-" * 25)
-        print("Choose a network connection method:")
-        print("1) Wired")
-        print("2) Wi-Fi")
-        print("3) Check current connection")
-        print("4) Return to main menu")
-        
-        choice = input("Enter your choice: ")
-        
-        if choice == "1":
-            # Assuming the wired connection will be managed by NetworkManager or dhcpcd
-            print("Please ensure your ethernet cable is connected.")
-            input("Press Enter to continue...")
-            
-        elif choice == "2":
-            ssid = input("Enter the SSID of the Wi-Fi network: ")
-            password = input("Enter the password for the Wi-Fi network: ")
-            # Connect to the Wi-Fi network using iwctl
-            run_command(f"iwctl station wlan0 connect {ssid} --passphrase {password}")
-            
-        elif choice == "3":
-            result = run_command("ping -c 1 google.com")
-            if result.returncode == 0:
-                print("You are connected to the internet.")
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+
+        # Draw title
+        title = "Available Wi-Fi Networks"
+        stdscr.attron(curses.color_pair(2))
+        stdscr.addstr(1, (w - len(title)) // 2, title)
+        stdscr.attroff(curses.color_pair(2))
+
+        # Draw SSIDs
+        for idx, ssid in enumerate(ssids):
+            x = w // 4
+            y = h // 4 + idx
+            if idx == current_row:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x, ssid)
+                stdscr.attroff(curses.color_pair(1))
             else:
-                print("You are not connected to the internet. Please check your connection.")
-                
-        elif choice == "4":
-            return
-        else:
-            print("Invalid choice!")
+                stdscr.addstr(y, x, ssid)
+
+        stdscr.refresh()
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(ssids) - 1:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            selected_ssid = ssids[current_row]
+            # Here you can handle the selected SSID, e.g., prompt for password and connect
+            password = stdscr.getstr(h - 2, w // 4, "Enter password for {}: ".format(selected_ssid)).decode('utf-8')
+            run_command(f"iwctl station wlan0 connect {selected_ssid} --passphrase {password}")
+            break
+
+def network_configuration(stdscr):
+    menu_items = ["Wired", "Wi-Fi", "Check current connection", "Return to main menu"]
+    current_row = 0
+
+    curses.curs_set(0)
+    stdscr.keypad(1)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
+
+    while True:
+        stdscr.clear()
+        h, w = stdscr.getmaxyx()
+
+        # Draw title
+        title = "Network Configuration"
+        stdscr.attron(curses.color_pair(2))
+        stdscr.addstr(1, (w - len(title)) // 2, title)
+        stdscr.attroff(curses.color_pair(2))
+
+        # Draw menu items
+        for idx, item in enumerate(menu_items):
+            x = w // 4
+            y = h // 4 + idx
+            if idx == current_row:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x, item)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(y, x, item)
+
+        stdscr.refresh()
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(menu_items) - 1:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            if current_row == 0:
+                stdscr.addstr(h - 2, w // 4, "Please ensure your ethernet cable is connected.")
+                stdscr.getch()
+            elif current_row == 1:
+                wifi_menu(stdscr)
+            elif current_row == 2:
+                result = run_command("ping -c 1 google.com")
+                if result.returncode == 0:
+                    stdscr.addstr(h - 2, w // 4, "You are connected to the internet.")
+                else:
+                    stdscr.addstr(h - 2, w // 4, "You are not connected to the internet. Please check your connection.")
+                stdscr.getch()
+            elif current_row == 3:
+                return
 
 
 def install_additional_packages(stdscr):
@@ -838,7 +919,7 @@ def display_menu(stdscr):
             elif current_row == 5:
                 localization()
             elif current_row == 6:
-                network_configuration()
+                network_configuration(stdscr)
             elif current_row == 7:
                 set_hostname()
             elif current_row == 8:
