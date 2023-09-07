@@ -10,6 +10,48 @@ from libs.bootloader import bootloader_menu
 
 from libs.utils import is_strong_password, run_command
 
+def confirm_formatting(stdscr, drive):
+    stdscr.addstr(1, 0, f"WARNING: You are about to format the drive {drive}.")
+    stdscr.addstr(2, 0, "All data on this drive will be permanently lost!")
+    stdscr.addstr(3, 0, "Are you sure you want to proceed? (y/n): ")
+    confirmation = stdscr.getch()
+    if confirmation != ord('y'):
+        stdscr.addstr(4, 0, "Operation cancelled.")
+        stdscr.getch()
+        return False
+    return True
+
+def setup_encryption_choice(stdscr):
+    stdscr.addstr(5, 0, "Do you want to enable LUKS encryption? (y/n): ")
+    encrypt_choice = stdscr.getch()
+    return encrypt_choice == ord('y')
+
+def format_btrfs(stdscr, drive):
+    stdscr.addstr(6, 0, "Do you want to enable Btrfs compression? (y/n): ")
+    choice = stdscr.getch()
+    try:
+        if choice == ord('y'):
+            run_command(f"mkfs.btrfs -f --compress=zstd {drive}2")
+        else:
+            run_command(f"mkfs.btrfs -f {drive}2")
+        stdscr.addstr(7, 0, "Partitions formatted successfully!")
+    except Exception as e:
+        stdscr.addstr(7, 0, f"Error formatting drive: {str(e)}")
+    stdscr.getch()
+
+def format_partitions_curses(stdscr, drive):
+    if not drive:
+        stdscr.addstr(0, 0, "No drive selected!")
+        stdscr.getch()
+        return
+
+    if not confirm_formatting(stdscr, drive):
+        return
+
+    if setup_encryption_choice(stdscr):
+        drive = setup_luks_encryption_curses(stdscr, drive)
+
+    format_btrfs(stdscr, drive)
 
 def install_filesystem_menu(stdscr):
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
@@ -150,36 +192,6 @@ def setup_luks_encryption_curses(stdscr, drive):
             continue
         break
 
-def format_partitions_curses(stdscr, drive):
-    if not drive:
-        stdscr.addstr(0, 0, "No drive selected!")
-        stdscr.getch()
-        return
-
-    stdscr.addstr(1, 0, f"WARNING: You are about to format the drive {drive}.")
-    stdscr.addstr(2, 0, "All data on this drive will be permanently lost!")
-    stdscr.addstr(3, 0, "Are you sure you want to proceed? (y/n): ")
-    confirmation = stdscr.getch()
-
-    if confirmation != ord('y'):
-        stdscr.addstr(4, 0, "Operation cancelled.")
-        stdscr.getch()
-        return
-
-    stdscr.addstr(5, 0, "Do you want to enable LUKS encryption? (y/n): ")
-    encrypt_choice = stdscr.getch()
-    if encrypt_choice == ord('y'):
-        drive = setup_luks_encryption_curses(stdscr, drive)
-
-    stdscr.addstr(6, 0, "Do you want to enable Btrfs compression? (y/n): ")
-    choice = stdscr.getch()
-    if choice == ord('y'):
-        run_command(f"mkfs.btrfs -f --compress=zstd {drive}2")
-    else:
-        run_command(f"mkfs.btrfs -f {drive}2")
-
-    stdscr.addstr(7, 0, "Partitions formatted successfully!")
-    stdscr.getch()
 
 def create_subvolumes_curses(stdscr, drive):
     # Unmount /mnt before creating subvolumes
