@@ -77,84 +77,90 @@ def display_menu(stdscr):
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
     while True:
-        stdscr.clear()
-        h, w = stdscr.getmaxyx()
+        try:
+            stdscr.clear()
+            h, w = stdscr.getmaxyx()
 
-        # Draw title
-        title = "Arch Linux Installation Menu"
-        stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(1, (w - len(title)) // 2, title)
-        stdscr.attroff(curses.color_pair(2))
+            # Draw title
+            title = "Arch Linux Installation Menu"
+            stdscr.attron(curses.color_pair(2))
+            stdscr.addstr(1, (w - len(title)) // 2, title)
+            stdscr.attroff(curses.color_pair(2))
 
-        # Draw menu items
-        for idx, item in enumerate(menu_items):
-            x = w // 4
-            y = h // 4 + idx
-            if idx == current_row:
-                stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(y, x, item)
-                stdscr.attroff(curses.color_pair(1))
-            else:
-                stdscr.addstr(y, x, item)
+            # Draw menu items
+            for idx, item in enumerate(menu_items):
+                x = w // 4
+                y = h // 4 + idx
+                if idx == current_row:
+                    stdscr.attron(curses.color_pair(1))
+                    stdscr.addstr(y, x, item)
+                    stdscr.attroff(curses.color_pair(1))
+                else:
+                    stdscr.addstr(y, x, item)
 
-        # Draw footer
-        footer = "Use arrow keys to navigate, Enter to select, and 'q' to quit."
-        stdscr.addstr(h - 2, (w - len(footer)) // 2, footer)
+            # Draw footer
+            footer = "Use arrow keys to navigate, Enter to select, and 'q' to quit."
+            stdscr.addstr(h - 2, (w - len(footer)) // 2, footer)
 
-        key = stdscr.getch()
+            key = stdscr.getch()
 
-        if key == curses.KEY_UP and current_row > 0:
-            current_row -= 1
-        elif key == curses.KEY_DOWN and current_row < len(menu_items) - 1:
-            current_row += 1
-        elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
-            if current_row == 0:
-                disk_operations.install_filesystem_menu(stdscr)
-            elif current_row == 1:
-                system_config.install_essential_packages()
-            elif current_row == 2:
-                disk_operations.configure_fstab()
-            elif current_row == 3:
-                utils.chroot_into_system()
-            elif current_row == 4:
-                system_config.set_time_zone()
-            elif current_row == 5:
-                system_config.localization()
-            elif current_row == 6:
-                system_config.network_configuration(stdscr)
-            elif current_row == 7:
-                system_config.set_hostname()
-            elif current_row == 8:
-                system_config.set_root_password()
-            elif current_row == 9:
-                system_config.create_user()
-            elif current_row == 10:
-                system_config.kernel_selector(stdscr)
-            elif current_row == 11:
-                system_config.install_additional_packages(stdscr)
-            elif current_row == 12:
-                system_config.install_custom_packages()
-            elif current_row == 13:
-                system_config.install_desktop_environment(stdscr)
-            elif current_row == 14:
-                enable_necessary_services()
-            elif current_row == 15:
-                utils.setup_zram()
-            elif current_row == 16:
-                configure_pacman_repositories()
-            elif current_row == 17:
-                system_config.setup_chaotic_aur()
-            elif current_row == 18:
-                system_config.setup_cachyos_repo()
-            elif current_row == len(menu_items) - 1:
+            if key == curses.KEY_UP and current_row > 0:
+                current_row -= 1
+            elif key == curses.KEY_DOWN and current_row < len(menu_items) - 1:
+                current_row += 1
+            elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
+                if current_row == 0:
+                    disk_operations.install_filesystem_menu(stdscr)
+                elif current_row == 1:
+                    system_config.install_essential_packages()
+                elif current_row == 2:
+                    disk_operations.configure_fstab()
+                elif current_row == 3:
+                    utils.chroot_into_system()
+                elif current_row == 4:
+                    system_config.set_time_zone()
+                elif current_row == 5:
+                    system_config.localization()
+                elif current_row == 6:
+                    system_config.network_configuration(stdscr)
+                elif current_row == 7:
+                    system_config.set_hostname()
+                elif current_row == 8:
+                    system_config.set_root_password()
+                elif current_row == 9:
+                    system_config.create_user()
+                elif current_row == 10:
+                    system_config.kernel_selector(stdscr)
+                elif current_row == 11:
+                    system_config.install_additional_packages(stdscr)
+                elif current_row == 12:
+                    system_config.install_custom_packages()
+                elif current_row == 13:
+                    system_config.install_desktop_environment(stdscr)
+                elif current_row == 14:
+                    system_config.enable_necessary_services()
+                elif current_row == 15:
+                    utils.setup_zram()
+                elif current_row == 16:
+                    system_config.configure_pacman_repositories()
+                elif current_row == 17:
+                    system_config.setup_chaotic_aur()
+                elif current_row == 18:
+                    system_config.setup_cachyos_repo()
+                elif current_row == len(menu_items) - 1:
+                    break
+            elif key == ord('q'):
                 break
-        elif key == ord('q'):
-            break
+
+        except Exception as e:
+            utils.handle_error(stdscr, str(e))
+            continue  # This will ensure the loop continues after displaying the error
 
         stdscr.refresh()  # Refresh the screen
 
     stdscr.keypad(0)  # Disable special keys
     curses.endwin()
+
 
 # To start the menu
 if __name__ == "__main__":
