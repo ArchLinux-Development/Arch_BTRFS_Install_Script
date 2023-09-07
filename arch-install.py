@@ -73,6 +73,7 @@ def display_menu(stdscr):
 
     curses.curs_set(0)
     stdscr.keypad(1)  # Enable special keys
+    # Initialize color pairs for menu highlighting
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
