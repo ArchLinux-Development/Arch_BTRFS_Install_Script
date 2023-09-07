@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 
 # Initialize logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(filename='bootloader.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def install_bootloader(stdscr, bootloader_choice):
     """
@@ -35,10 +35,10 @@ def install_bootloader(stdscr, bootloader_choice):
             # Install and configure systemd-boot
             subprocess.run(['bootctl', '--path=/boot', 'install'])
     except Exception as e:
+        logging.error(f"Error occurred while installing {bootloader_choice}: {str(e)}")
         # Display error message if bootloader installation fails
         stdscr.addstr(0, 0, f"Error installing {bootloader_choice}: {str(e)}")
         stdscr.getch()
-        return
 
 def render_menu(stdscr, bootloaders, selected_idx):
     """
