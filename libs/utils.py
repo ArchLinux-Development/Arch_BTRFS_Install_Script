@@ -27,6 +27,19 @@ def clear():
     subprocess.run(['clear'])
 
 
+def handle_error(screen, message):
+    """
+    Display an error message using curses and log the error.
+    """
+    # Log the error
+    logging.error(message)
+    
+    # Display the error message using curses
+    screen.addstr(0, 0, "ERROR: " + message, curses.color_pair(2))
+    screen.refresh()
+    curses.napms(2000)  # Display the error for 2 seconds
+    screen.clear()
+
 # Used for network configuration
 def run_command(command):
     return subprocess.run(command, shell=True, capture_output=True, text=True)
