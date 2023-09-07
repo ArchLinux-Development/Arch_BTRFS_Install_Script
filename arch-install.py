@@ -13,7 +13,11 @@ from libs import disk_operations
 from libs import system_config
 from libs import utils
 
+# Setting up logging
+logging.basicConfig(filename='menu.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 def display_intro():
+    """Display the introduction to the script."""
     os.system('clear')
     print("=" * 80)
     print(" " * 15 + "Arch BTRFS Installation Script By Eliminater74")
@@ -24,7 +28,14 @@ def display_intro():
     print("This advanced script is designed to simplify the process of installing Arch Linux with BTRFS as the filesystem.")
     print("With a focus on user-friendliness and customization, it provides a seamless experience even for beginners.")
     
-    print("\nKey Features:")
+    display_features()
+    display_guidelines()
+    
+    print("\nDisclaimer: Use this script at your own risk. Always ensure backups before making system changes.")
+    input("\nPress Enter to proceed to the main menu...")
+
+def display_features():
+    """Display the features of the script."""
     features = [
         "Interactive drive selection from connected devices.",
         "LUKS encryption for enhanced security.",
@@ -42,10 +53,12 @@ def display_intro():
         "Kernel selection based on user preference.",
         "User and root password management."
     ]
+    print("\nKey Features:")
     for feature in features:
         print(f"- {feature}")
-    
-    print("\nInstructions:")
+
+def display_guidelines():
+    """Display the guidelines for using the script."""
     guidelines = [
         "Navigate using the numbers provided in the menu.",
         "Follow on-screen prompts carefully.",
@@ -53,12 +66,9 @@ def display_intro():
         "Recommended to run from a Live Arch Linux environment.",
         "Backup crucial data before making changes to drives or partitions."
     ]
+    print("\nInstructions:")
     for idx, guideline in enumerate(guidelines, 1):
         print(f"{idx}. {guideline}")
-    
-    print("\nDisclaimer: Use this script at your own risk. Always ensure backups before making system changes.")
-    input("\nPress Enter to proceed to the main menu...")
-
 
 class Menu:
     def __init__(self):
@@ -86,6 +96,7 @@ class Menu:
         self.current_row = 0
 
     def display(self, stdscr):
+        """Display the main menu and handle user interactions."""
         curses.curs_set(0)
         stdscr.nodelay(1)
         stdscr.timeout(100)
@@ -117,6 +128,7 @@ class Menu:
                     if selected_function:
                         selected_function(stdscr)
                 except Exception as e:
+                    logging.error(f"Error occurred while executing function: {str(e)}")
                     # Display a user-friendly error message
                     error_message = f"An error occurred: {str(e)}"
                     stdscr.addstr(h // 2, w // 2 - len(error_message) // 2, error_message, curses.color_pair(1))
@@ -131,7 +143,6 @@ class Menu:
 
 # To start the menu
 if __name__ == "__main__":
-    display_intro()  # Uncomment this if you have a display_intro function
+    display_intro()
     menu = Menu()
     curses.wrapper(menu.display)
-
