@@ -7,6 +7,8 @@ import curses
 import logging
 from pathlib import Path
 
+from libs.system_config import install_microcode
+
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +27,37 @@ def run_command(command, log_file="install_log.txt"):
 def clear():
     """Clear the terminal screen using subprocess."""
     subprocess.run(['clear'])
+
+
+import logging
+
+# Custom Exception Classes
+
+class CustomError(Exception):
+    """Base class for other exceptions"""
+    pass
+
+class ExecutionError(CustomError):
+    """Raised when there's an error in command execution"""
+    pass
+
+
+# Utility Function for Error Handling
+
+def handle_error(func):
+    """
+    A decorator to handle errors and exceptions.
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except ExecutionError as e:
+            logging.error(f"Error executing {func.__name__}: {str(e)}")
+            print(f"Error: {str(e)}")
+        except Exception as e:
+            logging.error(f"An unexpected error occurred in {func.__name__}: {str(e)}")
+            print("An unexpected error occurred. Please check the logs for more details.")
+    return wrapper
 
 
 # Used for network configuration
