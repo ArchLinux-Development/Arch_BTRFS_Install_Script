@@ -152,9 +152,10 @@ def display_menu(stdscr):
             elif key == ord('q'):
                 break
 
-        except Exception as e:
-            utils.handle_error(stdscr, str(e))
-            continue  # This will ensure the loop continues after displaying the error
+        except OSError as e:
+            utils.handle_error(stdscr, f"OS error: {str(e)}")
+        except ValueError as e:
+            utils.handle_error(stdscr, f"Value error: {str(e)}")
 
         stdscr.refresh()  # Refresh the screen
 
