@@ -6,10 +6,9 @@ import sys
 import curses
 import logging
 from pathlib import Path
+from libs.bootloader import bootloader_menu
 
 from libs.utils import is_strong_password, run_command
-
-
 
 
 def install_filesystem_menu(stdscr):
@@ -19,6 +18,7 @@ def install_filesystem_menu(stdscr):
         "Format Partitions",
         "Create Subvolumes",
         "Mount File System",
+        "Install Bootloader",
         "Exit"
     ]
 
@@ -55,10 +55,13 @@ def install_filesystem_menu(stdscr):
                 create_subvolumes_curses(stdscr, drive)
             elif current_option == 3:
                 mount_file_system_curses(stdscr, drive)
-            elif current_option == 4:
+            elif current_option == 4:  # Corrected the index for "Install Bootloader"
+                bootloader_menu(stdscr)
+            elif current_option == 5:  # Corrected the index for "Exit"
                 break
 
         stdscr.refresh()
+
 
 def choose_drive_curses(stdscr):
     drives = get_connected_drives()
