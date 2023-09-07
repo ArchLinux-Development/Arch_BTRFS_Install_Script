@@ -40,6 +40,51 @@ def install_bootloader(stdscr, bootloader_choice):
         stdscr.getch()
         return
 
+def render_menu(stdscr, bootloaders, selected_idx):
+    """
+    Render the bootloader options menu.
+
+    Parameters:
+    - stdscr: the curses window object
+    - bootloaders: list of available bootloader options
+    - selected_idx: index of the currently selected bootloader option
+    """
+    stdscr.clear()
+    h, w = stdscr.getmaxyx()
+    for idx, bootloader in enumerate(bootloaders):
+        y = h // 2 - len(bootloaders) // 2 + idx
+        x = w // 2 - len(bootloader) // 2
+        # Highlight the currently selected bootloader option
+        if idx == selected_idx:
+            stdscr.attron(curses.color_pair(1))
+            stdscr.addstr(y, x, bootloader)
+            stdscr.attroff(curses.color_pair(1))
+        else:
+            stdscr.addstr(y, x, bootloader)
+    stdscr.refresh()
+
+def handle_input(stdscr, bootloaders, selected_idx):
+    """
+    Handle user input for the bootloader menu.
+
+    Parameters:
+    - stdscr: the curses window object
+    - bootloaders: list of available bootloader options
+    - selected_idx: index of the currently selected bootloader option
+
+    Returns:
+    - Tuple containing the updated selected index and a flag indicating if an option was selected
+    """
+    key = stdscr.getch()
+    # Navigate the menu options
+    if key == curses.KEY_UP and selected_idx > 0:
+        selected_idx -= 1
+    elif key == curses.KEY_DOWN and selected_idx < len(bootloaders) - 1:
+        selected_idx += 1
+    elif key == curses.KEY_ENTER or key in [10, 13]:
+        return selected_idx, True
+    return selected_idx, False
+
 def bootloader_menu(stdscr):
     """
     Display an interactive menu for the user to choose a bootloader.
@@ -49,32 +94,12 @@ def bootloader_menu(stdscr):
     """
     bootloaders = ['GRUB', 'rEFInd', 'systemd-boot', 'Exit']  # Available bootloader options
     selected_idx = 0
+    option_selected = False
 
-    while True:
-        stdscr.clear()
-        h, w = stdscr.getmaxyx()
-        for idx, bootloader in enumerate(bootloaders):
-            y = h // 2 - len(bootloaders) // 2 + idx
-            x = w // 2 - len(bootloader) // 2
-            # Highlight the currently selected bootloader option
-            if idx == selected_idx:
-                stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(y, x, bootloader)
-                stdscr.attroff(curses.color_pair(1))
-            else:
-                stdscr.addstr(y, x, bootloader)
+    while not option_selected:
+        render_menu(stdscr, bootloaders, selected_idx)
+        selected_idx, option_selected = handle_input(stdscr, bootloaders, selected_idx)
 
-        key = stdscr.getch()
-        # Navigate the menu options
-        if key == curses.KEY_UP and selected_idx > 0:
-            selected_idx -= 1
-        elif key == curses.KEY_DOWN and selected_idx < len(bootloaders) - 1:
-            selected_idx += 1
-        elif key == curses.KEY_ENTER or key in [10, 13]:
-            # Exit the menu or install the selected bootloader
-            if bootloaders[selected_idx] == 'Exit':
-                break
-            else:
-                install_bootloader(stdscr, bootloaders[selected_idx])
-
-        stdscr.refresh()
+    # Exit the menu or install the selected bootloader
+    if bootloaders[selected_idx] != 'Exit':
+        install_bootloader(stdscr, bootloaders[selected_idx])
