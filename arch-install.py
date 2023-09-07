@@ -7,6 +7,8 @@ import curses
 import logging
 from pathlib import Path
 
+from utils import handle_error, ExecutionError
+
 # Local application/library-specific imports
 from libs import bootloader
 from libs import disk_operations

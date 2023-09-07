@@ -7,7 +7,7 @@ import curses
 import logging
 from pathlib import Path
 
-from libs.utils import is_inside_chroot, is_strong_password, run_command, scan_wifi
+from libs.utils import is_inside_chroot, is_strong_password, run_command, scan_wifi, handle_error, ExecutionError
 
 
 def kernel_selector(stdscr):

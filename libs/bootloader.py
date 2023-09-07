@@ -7,6 +7,9 @@ import curses
 import logging
 from pathlib import Path
 
+from utils import handle_error, ExecutionError
+
+
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 

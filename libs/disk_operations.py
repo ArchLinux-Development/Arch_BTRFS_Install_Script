@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from libs.bootloader import bootloader_menu
 
-from libs.utils import is_strong_password, run_command
+from libs.utils import is_strong_password, run_command, handle_error, ExecutionError
 
 
 def install_filesystem_menu(stdscr):
