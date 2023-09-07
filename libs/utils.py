@@ -1,11 +1,13 @@
 # Standard library imports
 import os
+import shutil
 import subprocess
 import re
 import sys
 import curses
 import logging
 from pathlib import Path
+
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -115,6 +117,15 @@ def virt_check():
     except Exception as e:
         logging.error(f"Error detecting virtualization platform: {str(e)}")
 
+
+def get_wifi_interface():
+    # Get the name of the Wi-Fi interface (e.g., wlan0, wlp3s0)
+    result = run_command("iw dev | awk '$1==\"Interface\" {print $2}'")
+    interface = result.stdout.strip()
+    if not interface:
+        return "wlan0"  # Default to wlan0 if not found
+    return interface
+
 def scan_wifi():
     """
     Scans for available Wi-Fi networks.
@@ -122,13 +133,20 @@ def scan_wifi():
     Returns:
     - List of available Wi-Fi networks.
     """
+    # Dynamically get the Wi-Fi interface name
+    wifi_interface = get_wifi_interface()
+
     try:
-        result = subprocess.run(['iw', 'dev', 'wlan0', 'scan'], text=True, capture_output=True)
+        # Check if 'iw' command is available
+        if shutil.which("iw") is None:
+            raise Exception("'iw' command not found. Please install it to scan for Wi-Fi networks.")
+
+        result = subprocess.run(['iw', 'dev', wifi_interface, 'scan'], text=True, capture_output=True)
         networks = re.findall(r"SSID: (.+)", result.stdout)
         return networks
     except Exception as e:
         logging.error(f"Error scanning for Wi-Fi networks: {str(e)}")
-        return []
+        return [f"Error: {str(e)}"]
 
 
 def enable_services():

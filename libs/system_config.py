@@ -7,7 +7,7 @@ import curses
 import logging
 from pathlib import Path
 
-from libs.utils import is_inside_chroot, is_strong_password, run_command, scan_wifi
+from libs.utils import get_wifi_interface, is_strong_password, run_command, scan_wifi
 
 
 def kernel_selector(stdscr):
@@ -427,14 +427,6 @@ def wifi_menu(stdscr):
                 stdscr.addstr(h - 3, w // 4, f"Connected to {selected_ssid} successfully!")
             stdscr.getch()
             break
-
-def get_wifi_interface():
-    # Get the name of the Wi-Fi interface (e.g., wlan0, wlp3s0)
-    result = run_command("iw dev | awk '$1==\"Interface\" {print $2}'")
-    interface = result.stdout.strip()
-    if not interface:
-        return "wlan0"  # Default to wlan0 if not found
-    return interface
 
 
 def network_configuration(stdscr):
