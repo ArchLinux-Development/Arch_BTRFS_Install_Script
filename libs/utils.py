@@ -184,3 +184,88 @@ def chroot_into_system(script_path=None):
         logging.error(f"Error during chroot operation: {str(e)}")
 
 
+def update_systemd_services(to_enable, to_disable):
+    """
+    Enables and disables the specified systemd services.
+    
+    Parameters:
+    - to_enable: List of services to enable.
+    - to_disable: List of services to disable.
+    """
+    for service in to_enable:
+        subprocess.run(["systemctl", "enable", service], check=True)
+    for service in to_disable:
+        subprocess.run(["systemctl", "disable", service], check=True)
+
+def get_systemd_services():
+    command = "systemctl list-unit-files --type=service"
+    result = subprocess.run(command, text=True, capture_output=True, shell=True)
+    lines = result.stdout.splitlines()
+    services = []
+    for line in lines[1:-1]:  # Skip the header and footer lines
+        parts = line.split(None, 1)
+        if len(parts) == 2:
+            service, status = parts
+            services.append((service, status == "enabled"))
+    return services
+
+def toggle_service_status(services, index):
+    service, status = services[index]
+    services[index] = (service, not status)
+
+def display_services_menu(stdscr):
+    services = get_systemd_services()
+    current_row = 0
+
+    # Create a dictionary to store the original statuses of the services
+    original_statuses = {service: status for service, status in services}
+
+    # Get the height and width of the window
+    height, width = stdscr.getmaxyx()
+
+    while True:
+        stdscr.clear()
+
+        # Display the services and their status
+        for i, (service, status) in enumerate(services):
+            # Check if we're about to write outside the window boundaries
+            if i >= height - 1:
+                break
+
+            if i == current_row:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(i, 0, f"  {service} {'[X]' if status else '[ ]'}")
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(i, 0, f"  {service} {'[X]' if status else '[ ]'}")
+
+        # Capture user input
+        key = stdscr.getch()
+
+        # Navigate the menu
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(services) - 1:
+            current_row += 1
+        elif key == ord('e'):
+            service_to_toggle = services[current_row][0]
+            toggle_service_status(service_to_toggle)
+            services = get_systemd_services()  # Refresh the list after toggling
+        elif key == ord('q'):
+            break
+
+    # Reset the terminal settings
+    curses.endwin()
+
+    # Determine which services to enable and disable
+    to_enable = []
+    to_disable = []
+    for service, status in services:
+        if status and not original_statuses[service]:
+            to_enable.append(service)
+        elif not status and original_statuses[service]:
+            to_disable.append(service)
+
+    # Apply changes
+    update_systemd_services(to_enable, to_disable)
+

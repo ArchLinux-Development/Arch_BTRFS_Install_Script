@@ -78,7 +78,7 @@ def display_menu(stdscr):
         "Install additional packages": system_config.install_additional_packages,
         "Install custom packages": system_config.install_custom_packages,
         "Desktop Environment Installation": system_config.install_desktop_environment,
-        #"Enable necessary services": system_config.enable_necessary_services,
+        "Display Services Menu": utils.display_services_menu,
         "Setup zRAM": utils.setup_zram,
         #"Configure pacman repositories": system_config.configure_pacman_repositories,
         "Setup Chaotic-AUR": system_config.setup_chaotic_aur,
