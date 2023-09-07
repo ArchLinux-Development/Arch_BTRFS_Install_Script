@@ -60,76 +60,71 @@ def display_intro():
     input("\nPress Enter to proceed to the main menu...")
 
 
-import curses
+class Menu:
+    def __init__(self):
+        self.menu_items = [
+            ("Install Filesystem", disk_operations.install_filesystem_menu),
+            ("Install essential packages", system_config.install_essential_packages),
+            ("Configure fstab", disk_operations.configure_fstab),
+            ("Chroot into system", utils.chroot_into_system),
+            ("Set time zone", system_config.set_time_zone),
+            ("Localization", system_config.localization),
+            ("Network configuration", system_config.network_configuration),
+            ("Set hostname", system_config.set_hostname),
+            ("Set root password", system_config.set_root_password),
+            ("Create a new user", system_config.create_user),
+            ("Kernel Selector", system_config.kernel_selector),
+            ("Install additional packages", system_config.install_additional_packages),
+            ("Install custom packages", system_config.install_custom_packages),
+            ("Desktop Environment Installation", system_config.install_desktop_environment),
+            ("Display Services Menu", utils.display_services_menu),
+            ("Setup zRAM", utils.setup_zram),
+            ("Setup Chaotic-AUR", system_config.setup_chaotic_aur),
+            ("Setup CachyOS Repository", system_config.setup_cachyos_repo),
+            ("Quit", exit)
+        ]
+        self.current_row = 0
 
-def display_menu(stdscr):
-    menu_items = {
-        "Install Filesystem": disk_operations.install_filesystem_menu,
-        "Install essential packages": system_config.install_essential_packages,
-        "Configure fstab": disk_operations.configure_fstab,
-        "Chroot into system": utils.chroot_into_system,
-        "Set time zone": system_config.set_time_zone,
-        "Localization": system_config.localization,
-        "Network configuration": system_config.network_configuration,
-        "Set hostname": system_config.set_hostname,
-        "Set root password": system_config.set_root_password,
-        "Create a new user": system_config.create_user,
-        "Kernel Selector": system_config.kernel_selector,
-        "Install additional packages": system_config.install_additional_packages,
-        "Install custom packages": system_config.install_custom_packages,
-        "Desktop Environment Installation": system_config.install_desktop_environment,
-        "Display Services Menu": utils.display_services_menu,
-        "Setup zRAM": utils.setup_zram,
-        #"Configure pacman repositories": system_config.configure_pacman_repositories,
-        "Setup Chaotic-AUR": system_config.setup_chaotic_aur,
-        "Setup CachyOS Repository": system_config.setup_cachyos_repo,
-        #"Install Bootloader": system_config.install_bootloader,
-        #"Finish Installation": utils.finish_installation,
-        "Quit": exit
-    }
+    def display(self, stdscr):
+        curses.curs_set(0)
+        stdscr.nodelay(1)
+        stdscr.timeout(100)
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
-    curses.curs_set(0)
-    stdscr.nodelay(1)
-    stdscr.timeout(100)
-    curses.start_color()
-    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
-    current_row = 0
+        while True:
+            stdscr.clear()
+            h, w = stdscr.getmaxyx()
+            for idx, (item_name, _) in enumerate(self.menu_items):
+                x = w // 2 - len(item_name) // 2
+                y = h // 2 - len(self.menu_items) // 2 + idx
+                if idx == self.current_row:
+                    stdscr.attron(curses.color_pair(1))
+                    stdscr.addstr(y, x, item_name)
+                    stdscr.attroff(curses.color_pair(1))
+                else:
+                    stdscr.addstr(y, x, item_name)
 
-    while True:
-        stdscr.clear()
-        h, w = stdscr.getmaxyx()
-        for idx, item in enumerate(menu_items.keys()):
-            x = w // 2 - len(item) // 2
-            y = h // 2 - len(menu_items) // 2 + idx
-            if idx == current_row:
-                stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(y, x, item)
-                stdscr.attroff(curses.color_pair(1))
-            else:
-                stdscr.addstr(y, x, item)
+            key = stdscr.getch()
 
-        key = stdscr.getch()
+            if key == curses.KEY_UP and self.current_row > 0:
+                self.current_row -= 1
+            elif key == curses.KEY_DOWN and self.current_row < len(self.menu_items) - 1:
+                self.current_row += 1
+            elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
+                _, selected_function = self.menu_items[self.current_row]
+                if selected_function:
+                    selected_function(stdscr)
+                elif self.current_row == len(self.menu_items) - 1:
+                    break
 
-        if key == curses.KEY_UP and current_row > 0:
-            current_row -= 1
-        elif key == curses.KEY_DOWN and current_row < len(menu_items) - 1:
-            current_row += 1
-        elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
-            selected_function = menu_items.get(list(menu_items.keys())[current_row])
-            if selected_function:
-                selected_function(stdscr)
-            elif current_row == len(menu_items) - 1:
-                break
+            stdscr.refresh()
 
-        stdscr.refresh()
-
-    stdscr.getch()
-
-# Assuming the other required functions and imports are present in your code.
-
-
+        stdscr.getch()
 
 # To start the menu
 if __name__ == "__main__":
     display_intro()  # Uncomment this if you have a display_intro function
-    curses.wrapper(display_menu)
+    menu = Menu()
+    curses.wrapper(menu.display)
+
