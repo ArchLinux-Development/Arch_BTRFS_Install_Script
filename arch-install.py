@@ -113,9 +113,16 @@ class Menu:
                 self.current_row += 1
             elif key == curses.KEY_ENTER or key in [10, 13]:  # Enter key
                 _, selected_function = self.menu_items[self.current_row]
-                if selected_function:
-                    selected_function(stdscr)
-                elif self.current_row == len(self.menu_items) - 1:
+                try:
+                    if selected_function:
+                        selected_function(stdscr)
+                except Exception as e:
+                    # Display a user-friendly error message
+                    error_message = f"An error occurred: {str(e)}"
+                    stdscr.addstr(h // 2, w // 2 - len(error_message) // 2, error_message, curses.color_pair(1))
+                    stdscr.refresh()
+                    stdscr.getch()
+                if self.current_row == len(self.menu_items) - 1:
                     break
 
             stdscr.refresh()
