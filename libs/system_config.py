@@ -417,10 +417,24 @@ def wifi_menu(stdscr):
             current_row += 1
         elif key == curses.KEY_ENTER or key in [10, 13]:
             selected_ssid = ssids[current_row]
-            # Here you can handle the selected SSID, e.g., prompt for password and connect
+            wifi_interface = get_wifi_interface()  # Automatically get Wi-Fi interface name
             password = stdscr.getstr(h - 2, w // 4, "Enter password for {}: ".format(selected_ssid)).decode('utf-8')
-            run_command(f"iwctl station wlan0 connect {selected_ssid} --passphrase {password}")
+            result = run_command(f"iwctl station {wifi_interface} connect {selected_ssid} --passphrase {password}")
+            
+            if result.returncode != 0:
+                stdscr.addstr(h - 3, w // 4, "Failed to connect to the Wi-Fi network. Please check the password and try again.")
+            else:
+                stdscr.addstr(h - 3, w // 4, f"Connected to {selected_ssid} successfully!")
+            stdscr.getch()
             break
+
+def get_wifi_interface():
+    # Get the name of the Wi-Fi interface (e.g., wlan0, wlp3s0)
+    result = run_command("iw dev | awk '$1==\"Interface\" {print $2}'")
+    interface = result.stdout.strip()
+    if not interface:
+        return "wlan0"  # Default to wlan0 if not found
+    return interface
 
 
 def network_configuration(stdscr):
@@ -468,12 +482,13 @@ def network_configuration(stdscr):
             elif current_row == 1:
                 wifi_menu(stdscr)
             elif current_row == 2:
-                result = run_command("ping -c 1 google.com")
-                if result.returncode == 0:
+                result = run_command("curl -Is http://www.google.com | head -n 1")
+                if result and "HTTP/1.1 200 OK" in result.stdout:
                     stdscr.addstr(h - 2, w // 4, "You are connected to the internet.")
                 else:
                     stdscr.addstr(h - 2, w // 4, "You are not connected to the internet. Please check your connection.")
                 stdscr.getch()
             elif current_row == 3:
                 return
+
 
