@@ -147,6 +147,14 @@ def install_filesystem_menu(stdscr):
 
 
 def choose_drive_curses(stdscr):
+    # Initialize color pairs
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)  # Selected menu item
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)   # Header/Footer
+    curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)    # Top border
+    curses.init_pair(5, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Right border
+    curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)   # Bottom border
+    curses.init_pair(7, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Left border
+
     drives = get_connected_drives()
     current_option = 0
 
@@ -154,36 +162,50 @@ def choose_drive_curses(stdscr):
         stdscr.clear()
         h, w = stdscr.getmaxyx()
 
+        # Draw multi-color border
+        stdscr.hline(0, 0, curses.ACS_HLINE, curses.COLS - 1, curses.color_pair(4))
+        stdscr.vline(0, curses.COLS - 2, curses.ACS_VLINE, curses.LINES, curses.color_pair(5))
+        stdscr.hline(curses.LINES - 1, 0, curses.ACS_HLINE, curses.COLS - 1, curses.color_pair(6))
+        stdscr.vline(0, 0, curses.ACS_VLINE, curses.LINES, curses.color_pair(7))
+        stdscr.addch(0, 0, curses.ACS_ULCORNER, curses.color_pair(4))
+        stdscr.addch(0, curses.COLS - 2, curses.ACS_URCORNER, curses.color_pair(5))
+        stdscr.addch(curses.LINES - 1, curses.COLS - 2, curses.ACS_LRCORNER, curses.color_pair(6))
+        stdscr.addch(curses.LINES - 1, 0, curses.ACS_LLCORNER, curses.color_pair(7))
+
         # Title
         title = "Choose a Drive"
         stdscr.addstr(0, (w - len(title)) // 2, title, curses.A_BOLD)
 
         # If no drives are detected
         if not drives:
-            stdscr.addstr(2, 0, "No drives detected!")
+            stdscr.addstr(2, (w - len("No drives detected!")) // 2, "No drives detected!")
             stdscr.getch()
             return None
 
+        # Calculate the starting x-coordinate to center the drives
+        max_drive_length = max([len(drive) for drive in drives])
+        x_start = (w - max_drive_length) // 2
+
         # Display drives
         for idx, drive in enumerate(drives):
-            x = 5
             y = 2 + idx
 
             if idx == current_option:
-                stdscr.attron(curses.A_REVERSE)
-                stdscr.addstr(y, x, drive)
-                stdscr.attroff(curses.A_REVERSE)
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x_start, drive)
+                stdscr.attroff(curses.color_pair(1))
             else:
-                stdscr.addstr(y, x, drive)
+                stdscr.addstr(y, x_start, drive)
 
         # Add an option to return to the submenu
         return_option = "Return to submenu"
+        x_return = (w - len(return_option)) // 2
         if current_option == len(drives):
-            stdscr.attron(curses.A_REVERSE)
-            stdscr.addstr(2 + len(drives), 5, return_option)
-            stdscr.attroff(curses.A_REVERSE)
+            stdscr.attron(curses.color_pair(1))
+            stdscr.addstr(2 + len(drives), x_return, return_option)
+            stdscr.attroff(curses.color_pair(1))
         else:
-            stdscr.addstr(2 + len(drives), 5, return_option)
+            stdscr.addstr(2 + len(drives), x_return, return_option)
 
         key = stdscr.getch()
 
@@ -199,6 +221,7 @@ def choose_drive_curses(stdscr):
                 return drives[current_option]
 
         stdscr.refresh()
+
 
 def get_connected_drives():
     result = run_command("lsblk -dpno NAME,SIZE,MODEL")
