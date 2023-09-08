@@ -70,6 +70,7 @@ def display_guidelines():
     for idx, guideline in enumerate(guidelines, 1):
         print(f"{idx}. {guideline}")
 
+
 class Menu:
     def __init__(self):
         self.menu_items = [
@@ -100,19 +101,45 @@ class Menu:
         curses.curs_set(0)
         stdscr.nodelay(1)
         stdscr.timeout(100)
+        
+        # Initialize color pairs
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)  # Selected menu item
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)   # Header/Footer
+        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Informational text
+        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)    # Top border
+        curses.init_pair(5, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Right border
+        curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)   # Bottom border
+        curses.init_pair(7, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Left border
+
+        title = "Arch BTRFS Installation Script"
 
         while True:
             stdscr.clear()
+            
+            # Draw multi-color border
+            stdscr.hline(0, 0, curses.ACS_HLINE, curses.COLS - 1, curses.color_pair(4))  # Adjusted the length
+            stdscr.vline(0, curses.COLS - 2, curses.ACS_VLINE, curses.LINES, curses.color_pair(5))
+            stdscr.hline(curses.LINES - 1, 0, curses.ACS_HLINE, curses.COLS - 1, curses.color_pair(6))  # Adjusted the length
+            stdscr.vline(0, 0, curses.ACS_VLINE, curses.LINES, curses.color_pair(7))
+
+            # Adjusted corner drawing
+            stdscr.addch(0, 0, curses.ACS_ULCORNER, curses.color_pair(4))
+            stdscr.addch(0, curses.COLS - 2, curses.ACS_URCORNER, curses.color_pair(5))
+            stdscr.addch(curses.LINES - 1, curses.COLS - 2, curses.ACS_LRCORNER, curses.color_pair(6))
+            stdscr.addch(curses.LINES - 1, 0, curses.ACS_LLCORNER, curses.color_pair(7))
+
+            # Draw centered title
+            stdscr.addstr(0, (curses.COLS - len(title)) // 2, title, curses.color_pair(2))
+            
             h, w = stdscr.getmaxyx()
             for idx, (item_name, _) in enumerate(self.menu_items):
                 x = w // 2 - len(item_name) // 2
                 y = h // 2 - len(self.menu_items) // 2 + idx
                 if idx == self.current_row:
-                    stdscr.attron(curses.color_pair(1))
-                    stdscr.addstr(y, x, item_name)
-                    stdscr.attroff(curses.color_pair(1))
+                    stdscr.attron(curses.color_pair(1) | curses.A_BOLD)
+                    stdscr.addstr(y, x, "--> " + item_name)
+                    stdscr.attroff(curses.color_pair(1) | curses.A_BOLD)
                 else:
                     stdscr.addstr(y, x, item_name)
 
