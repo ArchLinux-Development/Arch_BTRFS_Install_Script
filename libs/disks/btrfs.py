@@ -6,6 +6,30 @@ from libs.utils import run_command
 # Initialize logging
 logging.basicConfig(filename='btrfs.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def setup_luks_encryption_curses(stdscr, drive):
+    while True:
+        stdscr.clear()
+        stdscr.addstr(0, 0, "Enter a passphrase for LUKS encryption: ")
+        curses.echo()
+        passphrase = stdscr.getstr(1, 0).decode('utf-8')
+        curses.noecho()
+
+        if not is_strong_password(passphrase):
+            stdscr.addstr(2, 0, "Weak passphrase! Ensure it's at least 8 characters long, contains lowercase, uppercase, numbers, and special characters.")
+            stdscr.getch()
+            continue
+
+        stdscr.addstr(2, 0, "Confirm passphrase: ")
+        curses.echo()
+        confirm_passphrase = stdscr.getstr(3, 0).decode('utf-8')
+        curses.noecho()
+
+        if passphrase != confirm_passphrase:
+            stdscr.addstr(4, 0, "Passphrases do not match!")
+            stdscr.getch()
+            continue
+        break
+
 class SubvolumeModification:
     """Class to represent a Btrfs subvolume modification."""
     def __init__(self, name, mount_point):
