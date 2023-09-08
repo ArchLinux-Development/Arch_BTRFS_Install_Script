@@ -89,7 +89,6 @@ class Menu:
             ("Install custom packages", system_config.install_custom_packages),
             ("Desktop Environment Installation", system_config.install_desktop_environment),
             ("Display Services Menu", utils.display_services_menu),
-            ("Setup zRAM", utils.setup_zram),
             ("Setup Chaotic-AUR", system_config.setup_chaotic_aur),
             ("Setup CachyOS Repository", system_config.setup_cachyos_repo),
             ("Quit", exit)
