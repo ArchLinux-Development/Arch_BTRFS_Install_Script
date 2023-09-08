@@ -7,10 +7,19 @@ import curses
 import logging
 from pathlib import Path
 from libs.bootloader import bootloader_menu
-
 from libs.utils import is_strong_password, run_command
 
+# Initialize logging
+logging.basicConfig(filename='disk_operations.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class SubvolumeModification:
+    """Class to represent a Btrfs subvolume modification."""
+    def __init__(self, name, mount_point):
+        self.name = name
+        self.mount_point = mount_point
+
 def confirm_formatting(stdscr, drive):
+    """Prompt the user to confirm formatting a drive."""
     stdscr.addstr(1, 0, f"WARNING: You are about to format the drive {drive}.")
     stdscr.addstr(2, 0, "All data on this drive will be permanently lost!")
     stdscr.addstr(3, 0, "Are you sure you want to proceed? (y/n): ")
@@ -22,11 +31,13 @@ def confirm_formatting(stdscr, drive):
     return True
 
 def setup_encryption_choice(stdscr):
+    """Prompt the user to choose whether to enable LUKS encryption."""
     stdscr.addstr(5, 0, "Do you want to enable LUKS encryption? (y/n): ")
     encrypt_choice = stdscr.getch()
     return encrypt_choice == ord('y')
 
 def format_btrfs(stdscr, drive):
+    """Format a drive with the Btrfs filesystem."""
     stdscr.addstr(6, 0, "Do you want to enable Btrfs compression? (y/n): ")
     choice = stdscr.getch()
     try:
@@ -36,6 +47,7 @@ def format_btrfs(stdscr, drive):
             run_command(f"mkfs.btrfs -f {drive}2")
         stdscr.addstr(7, 0, "Partitions formatted successfully!")
     except Exception as e:
+        logging.error(f"Error formatting drive: {str(e)}")
         stdscr.addstr(7, 0, f"Error formatting drive: {str(e)}")
     stdscr.getch()
 
@@ -247,4 +259,5 @@ class SubvolumeModification:
 
 
 def configure_fstab():
+    """Generate the fstab file."""
     run_command("genfstab -U /mnt >> /mnt/etc/fstab")
