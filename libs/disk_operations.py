@@ -72,6 +72,7 @@ class FileSystemMenu:
             ("Format Partitions", self.format_partitions),
             ("Create Subvolumes", self.create_subvolumes),
             ("Mount File System", self.mount_file_system),
+            ("Setup ZRAM", self.setup_zram),
             ("Install Bootloader", self.bootloader),
             ("Exit", self.exit_menu)
         ]
@@ -89,6 +90,9 @@ class FileSystemMenu:
 
     def mount_file_system(self, stdscr):
         mount_file_system_curses(stdscr, self.drive)
+
+    def setup_zram(self, stdscr):
+        setup_zram(self, stdscr)
 
     def bootloader(self, stdscr):
         bootloader_menu(stdscr)
@@ -313,3 +317,28 @@ class SubvolumeModification:
 def configure_fstab():
     """Generate the fstab file."""
     run_command("genfstab -U /mnt >> /mnt/etc/fstab")
+
+def setup_zram(self, stdscr):
+    """Setup ZRAM for swap on Btrfs filesystem."""
+    # Determine the amount of RAM in the system
+    total_memory = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+    zram_size = int(total_memory * 0.5)  # Using 50% of RAM for ZRAM
+
+    # Load the zram module
+    os.system("modprobe zram")
+
+    # Create a zram device
+    os.system(f"echo {zram_size} > /sys/block/zram0/disksize")
+
+    # Format the zram device as swap
+    os.system("mkswap /dev/zram0")
+
+    # Enable the swap
+    os.system("swapon /dev/zram0")
+
+    # Add the zram swap to fstab to ensure it's available after reboot
+    with open("/etc/fstab", "a") as fstab:
+        fstab.write("/dev/zram0 none swap defaults 0 0\n")
+
+    stdscr.addstr(0, 0, "ZRAM swap setup completed!")
+    stdscr.getch()

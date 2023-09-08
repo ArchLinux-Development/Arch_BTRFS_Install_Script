@@ -162,20 +162,7 @@ def enable_services():
         # ... [Any other service checks and setups]
     except Exception as e:
         logging.error(f"Error enabling services: {str(e)}")
-
-def setup_zram():
-    """
-    Sets up zRAM based on the system's RAM size.
-    """
-    try:
-        total_mem = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / (1024. ** 3)
-        zram_size = int(total_mem / 4)  # Use 1/4 of total RAM for zRAM
-        subprocess.run(['modprobe', 'zram'])
-        subprocess.run(['echo', f'zram0 {zram_size}M'], stdout=subprocess.PIPE)
-        subprocess.run(['mkswap', '/dev/zram0'])
-        subprocess.run(['swapon', '/dev/zram0'])
-    except Exception as e:
-        logging.error(f"Error setting up zRAM: {str(e)}")
+        
 
 def chroot_into_system(script_path=None):
     """
