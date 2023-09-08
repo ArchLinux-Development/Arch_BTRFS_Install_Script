@@ -65,56 +65,85 @@ def format_partitions_curses(stdscr, drive):
 
     format_btrfs(stdscr, drive)
 
+class FileSystemMenu:
+    def __init__(self):
+        self.menu_options = [
+            ("Choose Drive", self.choose_drive),
+            ("Format Partitions", self.format_partitions),
+            ("Create Subvolumes", self.create_subvolumes),
+            ("Mount File System", self.mount_file_system),
+            ("Install Bootloader", self.bootloader),
+            ("Exit", self.exit_menu)
+        ]
+        self.current_option = 0
+        self.drive = None
+
+    def choose_drive(self, stdscr):
+        self.drive = choose_drive_curses(stdscr)
+
+    def format_partitions(self, stdscr):
+        format_partitions_curses(stdscr, self.drive)
+
+    def create_subvolumes(self, stdscr):
+        create_subvolumes_curses(stdscr, self.drive)
+
+    def mount_file_system(self, stdscr):
+        mount_file_system_curses(stdscr, self.drive)
+
+    def bootloader(self, stdscr):
+        bootloader_menu(stdscr)
+
+    def exit_menu(self, stdscr):
+        exit(0)
+
+    def display(self, stdscr):
+        # Initialize color pairs
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)  # Selected menu item
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)   # Header/Footer
+        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)    # Top border
+        curses.init_pair(5, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Right border
+        curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)   # Bottom border
+        curses.init_pair(7, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Left border
+
+        while True:
+            stdscr.clear()
+            
+            # Draw multi-color border
+            stdscr.hline(0, 0, curses.ACS_HLINE, curses.COLS - 1, curses.color_pair(4))
+            stdscr.vline(0, curses.COLS - 2, curses.ACS_VLINE, curses.LINES, curses.color_pair(5))
+            stdscr.hline(curses.LINES - 1, 0, curses.ACS_HLINE, curses.COLS - 1, curses.color_pair(6))
+            stdscr.vline(0, 0, curses.ACS_VLINE, curses.LINES, curses.color_pair(7))
+            stdscr.addch(0, 0, curses.ACS_ULCORNER, curses.color_pair(4))
+            stdscr.addch(0, curses.COLS - 2, curses.ACS_URCORNER, curses.color_pair(5))
+            stdscr.addch(curses.LINES - 1, curses.COLS - 2, curses.ACS_LRCORNER, curses.color_pair(6))
+            stdscr.addch(curses.LINES - 1, 0, curses.ACS_LLCORNER, curses.color_pair(7))
+            
+            h, w = stdscr.getmaxyx()
+            for idx, (option, _) in enumerate(self.menu_options):
+                x = w // 2 - len(option) // 2
+                y = h // 2 - len(self.menu_options) // 2 + idx
+                if idx == self.current_option:
+                    stdscr.attron(curses.color_pair(1))
+                    stdscr.addstr(y, x, option)
+                    stdscr.attroff(curses.color_pair(1))
+                else:
+                    stdscr.addstr(y, x, option)
+
+            key = stdscr.getch()
+            if key == curses.KEY_UP and self.current_option > 0:
+                self.current_option -= 1
+            elif key == curses.KEY_DOWN and self.current_option < len(self.menu_options) - 1:
+                self.current_option += 1
+            elif key == curses.KEY_ENTER or key in [10, 13]:
+                _, selected_function = self.menu_options[self.current_option]
+                selected_function(stdscr)
+
+            stdscr.refresh()
+
+# To start the menu
 def install_filesystem_menu(stdscr):
-    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
-    menu_options = [
-        "Choose Drive",
-        "Format Partitions",
-        "Create Subvolumes",
-        "Mount File System",
-        "Install Bootloader",
-        "Exit"
-    ]
-
-    current_option = 0
-    drive = None
-
-    while True:
-        stdscr.clear()
-        h, w = stdscr.getmaxyx()
-
-        for idx, option in enumerate(menu_options):
-            x = w // 2 - len(option) // 2
-            y = h // 2 - len(menu_options) // 2 + idx
-
-            if idx == current_option:
-                stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(y, x, option)
-                stdscr.attroff(curses.color_pair(1))
-            else:
-                stdscr.addstr(y, x, option)
-
-        key = stdscr.getch()
-
-        if key == curses.KEY_UP and current_option > 0:
-            current_option -= 1
-        elif key == curses.KEY_DOWN and current_option < len(menu_options) - 1:
-            current_option += 1
-        elif key == curses.KEY_ENTER or key in [10, 13]:
-            if current_option == 0:
-                drive = choose_drive_curses(stdscr)
-            elif current_option == 1:
-                format_partitions_curses(stdscr, drive)
-            elif current_option == 2:
-                create_subvolumes_curses(stdscr, drive)
-            elif current_option == 3:
-                mount_file_system_curses(stdscr, drive)
-            elif current_option == 4:  # Corrected the index for "Install Bootloader"
-                bootloader_menu(stdscr)
-            elif current_option == 5:  # Corrected the index for "Exit"
-                break
-
-        stdscr.refresh()
+    menu = FileSystemMenu()
+    menu.display(stdscr)
 
 
 def choose_drive_curses(stdscr):
