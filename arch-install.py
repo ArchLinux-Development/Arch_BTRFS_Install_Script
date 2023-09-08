@@ -8,8 +8,7 @@ import logging
 from pathlib import Path
 
 # Local application/library-specific imports
-from libs import bootloader
-from libs import disk_operations
+from libs import disk_operations, file_system_options
 from libs import system_config
 from libs import utils
 
@@ -74,7 +73,7 @@ def display_guidelines():
 class Menu:
     def __init__(self):
         self.menu_items = [
-            ("Install Filesystem", disk_operations.install_filesystem_menu),
+            ("Install Filesystem", file_system_options.install_filesystem_menu),
             ("Install essential packages", system_config.install_essential_packages),
             ("Configure fstab", disk_operations.configure_fstab),
             ("Chroot into system", utils.chroot_into_system),
