@@ -1,3 +1,4 @@
 libs/__pycache__/*.*
 *.log
 install_log.txt
+libs/disks/__pycache__/*.*
