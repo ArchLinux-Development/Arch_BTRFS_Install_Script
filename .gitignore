@@ -1,3 +1,2 @@
 libs/__pycache__/*.*
-
-install_log.txt
+*.log
